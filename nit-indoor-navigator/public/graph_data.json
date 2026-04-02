@@ -1,0 +1,58 @@
+{
+  "building": {
+    "id": "main",
+    "name": "Main Academic Block",
+    "college": "Nehru Institute of Technology"
+  },
+  "floor": {
+    "level": 0,
+    "name": "Ground Floor",
+    "mapImage": "ground_floor.png",
+    "mapDimensions": {
+      "width": 700,
+      "height": 500
+    }
+  },
+  "nodes": [
+    { "id": "innovation_hub", "name": "Innovation Hub", "type": "lab", "x": 155, "y": 165 },
+    { "id": "iqac", "name": "IQAC", "type": "office", "x": 295, "y": 120 },
+    { "id": "lab_6", "name": "Lab 6", "type": "lab", "x": 270, "y": 200 },
+    { "id": "staircase_left", "name": "Staircase (Left)", "type": "staircase", "x": 340, "y": 80 },
+    { "id": "boys_toilet", "name": "Boys Toilet", "type": "toilet", "x": 360, "y": 110 },
+    { "id": "visveswara_hall", "name": "Visveswara Hall", "type": "hall", "x": 470, "y": 135 },
+    { "id": "atrium_lobby", "name": "Atrium Lobby", "type": "corridor", "x": 365, "y": 245 },
+    { "id": "girls_toilet", "name": "Girls Toilet", "type": "toilet", "x": 465, "y": 235 },
+    { "id": "staircase_right", "name": "Staircase (Right)", "type": "staircase", "x": 540, "y": 260 },
+    { "id": "admin_office", "name": "Administrative Office", "type": "office", "x": 510, "y": 300 },
+    { "id": "way_for_mba", "name": "Way for MBA", "type": "corridor", "x": 565, "y": 300 },
+    { "id": "circa", "name": "CIRCA", "type": "office", "x": 395, "y": 335 },
+    { "id": "principal_room", "name": "Principal Room", "type": "office", "x": 505, "y": 370 },
+    { "id": "pk_das_hall", "name": "PK DAS Hall", "type": "hall", "x": 480, "y": 420 }
+  ],
+  "edges": [
+    { "from": "innovation_hub", "to": "iqac", "weight": 15 },
+    { "from": "innovation_hub", "to": "lab_6", "weight": 12 },
+    { "from": "iqac", "to": "lab_6", "weight": 10 },
+    { "from": "iqac", "to": "staircase_left", "weight": 8 },
+    { "from": "iqac", "to": "boys_toilet", "weight": 10 },
+    { "from": "lab_6", "to": "atrium_lobby", "weight": 12 },
+    { "from": "staircase_left", "to": "boys_toilet", "weight": 5 },
+    { "from": "staircase_left", "to": "visveswara_hall", "weight": 14 },
+    { "from": "boys_toilet", "to": "visveswara_hall", "weight": 12 },
+    { "from": "visveswara_hall", "to": "girls_toilet", "weight": 11 },
+    { "from": "visveswara_hall", "to": "staircase_right", "weight": 14 },
+    { "from": "atrium_lobby", "to": "girls_toilet", "weight": 10 },
+    { "from": "atrium_lobby", "to": "circa", "weight": 10 },
+    { "from": "atrium_lobby", "to": "staircase_left", "weight": 18 },
+    { "from": "atrium_lobby", "to": "boys_toilet", "weight": 14 },
+    { "from": "girls_toilet", "to": "staircase_right", "weight": 8 },
+    { "from": "girls_toilet", "to": "admin_office", "weight": 8 },
+    { "from": "staircase_right", "to": "admin_office", "weight": 6 },
+    { "from": "staircase_right", "to": "way_for_mba", "weight": 6 },
+    { "from": "admin_office", "to": "way_for_mba", "weight": 6 },
+    { "from": "admin_office", "to": "principal_room", "weight": 8 },
+    { "from": "circa", "to": "principal_room", "weight": 12 },
+    { "from": "circa", "to": "pk_das_hall", "weight": 12 },
+    { "from": "principal_room", "to": "pk_das_hall", "weight": 6 }
+  ]
+}
