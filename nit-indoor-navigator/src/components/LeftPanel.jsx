@@ -10,7 +10,7 @@ export default function LeftPanel() {
     T, lang, voiceOn,
     fromId, toId, setFromId, setToId, setModal, swap, calcRoute,
     routeResult, setRouteResult, quickRoute, panelOpen, setPanelOpen,
-    setShowVoice, favorites, toggleFav, recent, navigateTo, showToast,
+    setShowVoice, favorites, toggleFav, recent, navigateTo, showToast, setCurrentFloor,
   } = useApp();
   const [tab, setTab] = useState('directions');
 
@@ -148,9 +148,9 @@ export default function LeftPanel() {
                 )}
 
                 <div className="route-summary">
-                  <div className="stat-pill"><div className="stat-val">{routeResult.distance}{T('meters')}</div><div className="stat-lbl">{T('distance')}</div></div>
-                  <div className="stat-pill"><div className="stat-val">{fmtTime(routeResult.walkTimeVal, T)}</div><div className="stat-lbl">{T('walkingTime')}</div></div>
-                  <div className="stat-pill"><div className="stat-val">{routeResult.instructions.length}</div><div className="stat-lbl">{T('steps')}</div></div>
+                  <div className="stat-pill"><div className="stat-val">{routeResult.distance} {T('meters') || 'm'}</div><div className="stat-lbl">{T('distance')}</div></div>
+                  <div className="stat-pill"><div className="stat-val">{fmtTime(routeResult.walkTimeVal, T)}</div><div className="stat-lbl">{T('estimatedTime') || 'Est. Time'}</div></div>
+                  <div className="stat-pill"><div className="stat-val">{routeResult.instructions.filter(i => i.distance > 0 || i.type === 'destination').length}</div><div className="stat-lbl">{T('checkpoints') || 'Checkpoints'}</div></div>
                 </div>
 
                 {/* Route includes indicator */}
@@ -161,15 +161,26 @@ export default function LeftPanel() {
                 </div>
 
                 <ul className="step-list">
-                  {routeResult.instructions.map((step, i) => (
-                    <li key={i} className={`step-item ${step.type}`}>
-                      <div className="step-icon">{step.icon}</div>
-                      <div>
-                        <div className="step-text">{step.text}</div>
-                        {step.distance > 0 && <div className="step-dist">~{step.distance}{T('meters')} {T('walk')}</div>}
-                      </div>
-                    </li>
-                  ))}
+                  {routeResult.instructions.map((step, i) => {
+                    if (step.isTransition) {
+                      return (
+                        <div key={i} className="transition-card" onClick={() => setCurrentFloor(step.floor)} style={{ margin: '15px 0', padding: '15px', background: '#e0e7ff', borderRadius: '12px', border: '2px dashed #818cf8', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' }}>
+                          <div style={{ fontSize: '24px', marginBottom: '5px' }}>{step.icon}</div>
+                          <div style={{ fontWeight: 600, color: '#3730a3' }}>{step.text}</div>
+                          <div style={{ fontSize: '12px', color: '#4f46e5', marginTop: '4px' }}>Click to view next route segment</div>
+                        </div>
+                      );
+                    }
+                    return (
+                      <li key={i} className={`step-item ${step.type}`} onClick={() => { if(step.floor) setCurrentFloor(step.floor); }} style={{ cursor: 'pointer' }}>
+                        <div className="step-icon">{step.icon}</div>
+                        <div>
+                          <div className="step-text">{step.text}</div>
+                          {step.distance > 0 && <div className="step-dist">~{step.distance} {T('meters')} {T('walk')}</div>}
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
 
                 <button className="clear-route-btn" onClick={() => { setFromId(null); setToId(null); setRouteResult(null); }}>

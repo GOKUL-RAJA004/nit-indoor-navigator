@@ -9,11 +9,9 @@ export default function VoiceOverlay() {
   const [transcript, setTranscript] = useState('');
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (!isRecognitionSupported) {
-      setError('Speech recognition is not supported in this browser. Try Chrome.');
-      return;
-    }
+  const startMic = () => {
+    setError('');
+    setTranscript('');
     setListening(true);
     const voiceLang = t(lang, 'voiceLang') || 'en-US';
     startListening(
@@ -22,6 +20,14 @@ export default function VoiceOverlay() {
       () => setListening(false),
       (err) => { setError(String(err)); setListening(false); },
     );
+  };
+
+  useEffect(() => {
+    if (!isRecognitionSupported) {
+      setError('Speech recognition is not supported in this browser. Try Chrome.');
+      return;
+    }
+    startMic();
     return () => stopListening();
   }, []);
 
@@ -29,13 +35,20 @@ export default function VoiceOverlay() {
     <div className="voice-overlay" onClick={() => { stopListening(); setShowVoice(false); }}>
       <div className="voice-box" onClick={e => e.stopPropagation()}>
         <div className="mic-anim">🎤</div>
-        <h3>{listening ? (T('voiceListening') || 'Listening…') : (error || 'Done')}</h3>
+        <h3>{listening ? (T('voiceListening') || 'Listening…') : (error ? 'Error' : 'Done')}</h3>
         <p>{T('voiceSpeak') || 'Say a destination, e.g. "Take me to Principal Room"'}</p>
         {transcript && <div className="transcript">"{transcript}"</div>}
-        {error && <p style={{ color: '#ef4444', fontSize: '12px', marginTop: '8px' }}>{error}</p>}
-        <button onClick={() => { stopListening(); setShowVoice(false); }}>
-          {T('close') || 'Close'}
-        </button>
+        {error && <p style={{ color: '#ef4444', fontSize: '12px', marginTop: '8px', padding: '0 8px' }}>{error}</p>}
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '16px' }}>
+          {error && (
+            <button onClick={startMic} style={{ background: 'var(--blue-600)', color: '#fff' }}>
+              Retry
+            </button>
+          )}
+          <button onClick={() => { stopListening(); setShowVoice(false); }}>
+            {T('close') || 'Close'}
+          </button>
+        </div>
       </div>
     </div>
   );

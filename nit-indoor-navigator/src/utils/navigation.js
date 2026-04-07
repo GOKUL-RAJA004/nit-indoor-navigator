@@ -9,9 +9,13 @@ import { nodes, edges } from '../data/buildingData';
 export function buildGraph() {
   const g = new Map();
   nodes.forEach(n => g.set(n.id, []));
-  edges.forEach(([a, b, w]) => {
-    g.get(a)?.push({ neighbor: b, weight: w });
-    g.get(b)?.push({ neighbor: a, weight: w });
+  edges.forEach(e => {
+    g.get(e.source)?.push({ neighbor: e.target, weight: e.weight, type: e.edge_type });
+    if (e.edge_type === 'path') {
+      g.get(e.target)?.push({ neighbor: e.source, weight: e.weight, type: e.edge_type });
+    } else if (e.edge_type === 'staircase_up' || e.edge_type === 'staircase_down') {
+      // staircases are already provided as bidirectional pairs in buildingData
+    }
   });
   return g;
 }
@@ -52,8 +56,8 @@ export function dijkstra(startId, endId) {
 const nodeMap = () => new Map(nodes.map(n => [n.id, n]));
 
 function edgeWeight(a, b) {
-  const e = edges.find(([x, y]) => (x === a && y === b) || (y === a && x === b));
-  return e ? e[2] : 0;
+  const e = edges.find(x => (x.source === a && x.target === b) || (x.target === a && x.source === b));
+  return e ? e.weight : 0;
 }
 
 function turnDir(prev, cur, next) {
@@ -74,72 +78,124 @@ function locName(node, T) {
   return translated !== key ? translated : node.name;
 }
 
-/* ── instruction generator (skips waypoint nodes in text, keeps for geometry) ── */
 export function generateInstructions(path, T = null) {
   if (!path || path.length < 2) return [];
   const nm = nodeMap();
   const ins = [];
 
-  // Filter to only visible (non-waypoint) nodes for instructions
-  const visible = path.filter(id => !nm.get(id)?.isWaypoint);
-  if (visible.length < 2) return [];
-
-  // Compute cumulative distance between visible nodes
-  function distBetween(fromId, toId) {
-    const fi = path.indexOf(fromId), ti = path.indexOf(toId);
-    let total = 0;
-    for (let j = fi; j < ti; j++) total += edgeWeight(path[j], path[j + 1]);
-    return total;
-  }
-
-  // Start
-  const startNode = nm.get(visible[0]);
+  const startNode = nm.get(path[0]);
   ins.push({
-    icon: '📍', type: 'start', nodeId: visible[0], distance: 0,
+    icon: '📍', type: 'start', nodeId: path[0], distance: 0,
     text: `${T?.('startsFrom') || 'Start from'} ${locName(startNode, T)}`,
   });
 
-  // Middle steps (only visible nodes)
-  for (let i = 1; i < visible.length - 1; i++) {
-    const pr = nm.get(visible[i - 1]), cu = nm.get(visible[i]), nx = nm.get(visible[i + 1]);
-    const d = distBetween(visible[i - 1], visible[i]);
-    const dir = turnDir(pr, cu, nx);
-    const name = locName(cu, T);
+  // Extract a short junction label from waypoint ID
+  const getWaypointLabel = (id) => {
+    // f2_Y3 → Y3, f4_Y1 → Y1, Y1 → Y1
+    const m = id.match(/(?:f\d+_)?(Y\d+)/);
+    return m ? m[1] : id;
+  };
 
-    let icon = '⬆️', text = '';
-    if (cu.type === 'staircase') {
-      icon = '🪜'; text = `${T?.('staircaseAhead') || 'Staircase ahead'} – ${name}`;
-    } else if (cu.type === 'corridor' || cu.type === 'outdoor') {
-      icon = '🚶';
-      const dirText = dir === 'left' ? (T?.('turnLeft') || 'Turn left')
-        : dir === 'right' ? (T?.('turnRight') || 'Turn right')
-        : (T?.('goStraight') || 'Go straight');
-      text = `${dirText} ${T?.('through') || 'through'} ${name}`;
-    } else {
-      if (dir === 'left') { icon = '⬅️'; text = `${T?.('turnLeft') || 'Turn left'} ${T?.('at') || 'at'} ${name}`; }
-      else if (dir === 'right') { icon = '➡️'; text = `${T?.('turnRight') || 'Turn right'} ${T?.('at') || 'at'} ${name}`; }
-      else { text = `${T?.('goStraight') || 'Go straight'} ${T?.('past') || 'past'} ${name}`; }
+  const getLandmark = (node) => {
+    if (!node.isWaypoint) return locName(node, T);
+    if (node.id.includes('Y')) return getWaypointLabel(node.id);
+    let minD = Infinity; let closest = null;
+    for (const n of nodes) {
+      if (!n.isWaypoint && n.floor === node.floor) {
+        const d = Math.hypot(n.x - node.x, n.y - node.y);
+        if (d < minD) { minD = d; closest = n; }
+      }
     }
-    ins.push({ icon, type: 'navigate', nodeId: visible[i], distance: d, text });
+    return closest ? `${locName(closest, T)} junction` : 'junction';
+  };
+
+  const checkpoints = [];
+  for (let i = 1; i < path.length - 1; i++) {
+    const pr = nm.get(path[i - 1]), cu = nm.get(path[i]), nx = nm.get(path[i + 1]);
+    // Floor change: only trigger on DEPARTURE side (current→next changes floor)
+    // Skip ARRIVAL side (prev→current changed floor) to avoid duplicate transition cards
+    const isDeparture = cu.floor !== nx.floor;
+    const isArrival = pr.floor !== cu.floor;
+    if (isDeparture) {
+      checkpoints.push({ node: cu, dir: 'floor_change' });
+    } else if (!isArrival) {
+      // Normal same-floor checkpoint
+      const dir = turnDir(pr, cu, nx);
+      if (dir !== 'straight' || !cu.isWaypoint) {
+        checkpoints.push({ node: cu, dir });
+      }
+    }
+    // If isArrival && !isDeparture: skip — this is the landing node after staircase, handled automatically
   }
+  checkpoints.push({ node: nm.get(path[path.length - 1]), dir: 'end' });
 
-  // Walk to final
-  const lastDist = distBetween(visible[visible.length - 2], visible[visible.length - 1]);
-  const endNode = nm.get(visible[visible.length - 1]);
+  let lastNodeIndex = 0;
+  for (let i = 0; i < checkpoints.length; i++) {
+    const cp = checkpoints[i];
+    const cpIndex = path.indexOf(cp.node.id);
+    
+    let dist = 0;
+    for (let j = lastNodeIndex; j < cpIndex; j++) dist += edgeWeight(path[j], path[j + 1]);
+    
+    const landmarkName = getLandmark(cp.node);
+    
+    // Time calculation (1.2m/s)
+    const timeSecs = Math.ceil(dist / 1.2);
+    const timeText = timeSecs < 60 ? `about ${timeSecs} seconds` : `about ${Math.floor(timeSecs / 60)} minute${Math.floor(timeSecs / 60) !== 1 ? 's' : ''}`;
 
-  if (lastDist) {
-    ins.push({
-      icon: '🚶', type: 'navigate', nodeId: visible[visible.length - 1], distance: lastDist,
-      text: `${T?.('walkFor') || 'Walk straight for'} ${lastDist}${T?.('meters') || 'm'}`,
-    });
+    let landmarkFormat = landmarkName;
+    if (cp.node.id.includes('Y')) landmarkFormat = `${landmarkName} junction`;
+    
+    if (cp.dir === 'end') {
+      if (dist > 0) {
+        ins.push({
+          icon: '🚶', type: 'navigate', nodeId: cp.node.id, distance: dist, floor: cp.node.floor,
+          text: `${T?.('continue') || 'Continue'} ${dist} ${T?.('meters') || 'meters'} ${T?.('toward') || 'toward'} ${locName(cp.node, T)}, ${timeText}`
+        });
+      }
+      ins.push({
+        icon: '🏁', type: 'destination', nodeId: cp.node.id, distance: 0, floor: cp.node.floor,
+        text: `Reach destination: ${locName(cp.node, T)}`
+      });
+    } else if (cp.dir === 'floor_change') {
+      const floorNames = { '0': 'Ground Floor', '1': '1st Floor', '2': '2nd Floor', '3': '3rd Floor', '4': '4th Floor' };
+      const nextNode = nodeMap().get(path[cpIndex + 1]);
+      const isUp = parseInt(nextNode?.floor || '0') > parseInt(cp.node.floor);
+      const targetStrFloor = nextNode?.floor || '0';
+      ins.push({
+        icon: '🚶', type: 'navigate', nodeId: cp.node.id, distance: dist, floor: nodeMap().get(path[Math.max(0, cpIndex - 1)])?.floor || cp.node.floor,
+        text: `Move to staircase, ${timeText}`
+      });
+      ins.push({
+        icon: '🪜', type: 'staircase', nodeId: cp.node.id, distance: 0, isTransition: true, floor: targetStrFloor,
+        text: `Go ${isUp ? 'up' : 'down'} to ${floorNames[targetStrFloor] || targetStrFloor + 'F'}`
+      });
+    } else {
+      const verb = i === 0 ? (T?.('move') || 'Move') : (T?.('continue') || 'Continue');
+      ins.push({
+        icon: '🚶', type: 'navigate', nodeId: cp.node.id, distance: dist, floor: cp.node.floor,
+        text: `${verb} ${dist} ${T?.('meters') || 'meters'} ${T?.('toward') || 'toward'} ${landmarkFormat}, ${timeText}`
+      });
+
+      let turnText = '';
+      if (cp.dir === 'left') turnText = T?.('turnLeftAt') || 'Turn left at';
+      else if (cp.dir === 'right') turnText = T?.('turnRightAt') || 'Turn right at';
+      else turnText = T?.('proceedToward') || 'Proceed toward';
+
+      let icon = cp.dir === 'left' ? '⬅️' : cp.dir === 'right' ? '➡️' : '⬆️';
+      if (cp.node.type === 'staircase') {
+         icon = '🪜';
+         turnText = 'Move to staircase';
+         landmarkFormat = '';
+      }
+
+      ins.push({
+        icon, type: 'navigate', nodeId: cp.node.id, distance: 0, floor: cp.node.floor,
+        text: `${turnText} ${landmarkFormat}`.trim()
+      });
+    }
+    lastNodeIndex = cpIndex;
   }
-
-  // Arrival
-  ins.push({
-    icon: '🏁', type: 'destination', nodeId: visible[visible.length - 1], distance: 0,
-    text: `${T?.('arriveAt') || 'Arrive at'} ${locName(endNode, T)} – ${T?.('destReached') || 'Destination reached'}!`,
-  });
-
   return ins;
 }
 

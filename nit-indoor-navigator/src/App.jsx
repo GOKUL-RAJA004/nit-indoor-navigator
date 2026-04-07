@@ -21,7 +21,7 @@ export default function App() {
   useEffect(() => { setTimeout(() => setSplash(false), 2200); }, []);
 
   // -- global state
-  const [lang, setLang] = useState(() => localStorage.getItem('nit-lang') || 'en');
+  const [lang, setLang] = useState(() => localStorage.getItem('nit-lang') || 'ta');
   const [voiceOn, setVoiceOn] = useState(() => localStorage.getItem('nit-voice') !== 'off');
   const [favorites, setFavorites] = useState(() => {
     try { return JSON.parse(localStorage.getItem('nit-favs') || '[]'); } catch { return []; }
@@ -47,6 +47,7 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showVoice, setShowVoice] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [currentFloor, setCurrentFloor] = useState('0');
 
   // translation helper
   const T = useCallback((key) => t(lang, key), [lang]);
@@ -80,6 +81,11 @@ export default function App() {
     const ins = generateInstructions(r.path, T);
     const wt = walkTime(r.distance);
     setRouteResult({ ...r, instructions: ins, walkTimeVal: wt });
+    
+    // auto-switch to the starting floor
+    const startNode = nodes.find(n => n.id === from);
+    if (startNode) setCurrentFloor(startNode.floor);
+
     showToast(T('routeFound'), 'success');
     addRecent(to);
 
@@ -99,6 +105,10 @@ export default function App() {
       const ins = generateInstructions(r.path, T);
       const wt = walkTime(r.distance);
       setRouteResult({ ...r, instructions: ins, walkTimeVal: wt });
+      
+      const startNode = nodes.find(n => n.id === from);
+      if (startNode) setCurrentFloor(startNode.floor);
+
       showToast(T('routeFound'), 'success');
       if (voiceOn) speakInstructions(ins, t(lang, 'voiceLang') || 'en-US');
     }, 100);
@@ -125,13 +135,45 @@ export default function App() {
 
   // voice search handler
   const onVoiceResult = (transcript) => {
-    const dest = parseVoiceCommand(transcript);
-    const matches = searchNodes(dest);
-    if (matches.length) {
-      setToId(matches[0].id); addRecent(matches[0].id);
-      showToast(`Destination: ${matches[0].name}`, 'success');
+    if (!transcript) {
+      setShowVoice(false);
+      return;
+    }
+    const lcTrans = transcript.toLowerCase();
+    const visible = nodes.filter(n => !n.isWaypoint);
+    let bestMatch = null;
+
+    // Search transcript for any matches of location names (English + Native language + Tags)
+    for (const n of visible) {
+      const nameEn = n.name.toLowerCase();
+      const key = `loc_${n.id}`;
+      const translated = T(key);
+      const nameLocal = translated !== key ? translated.toLowerCase() : '';
+
+      if (
+        lcTrans.includes(nameEn) ||
+        (nameLocal && lcTrans.includes(nameLocal)) ||
+        n.searchTags.some(t => lcTrans.includes(t.toLowerCase()))
+      ) {
+        bestMatch = n; break;
+      }
+    }
+
+    if (bestMatch) {
+      const destName = T(`loc_${bestMatch.id}`) !== `loc_${bestMatch.id}` ? T(`loc_${bestMatch.id}`) : bestMatch.name;
+      setToId(bestMatch.id);
+      addRecent(bestMatch.id);
+      showToast(`Destination: ${destName}`, 'success');
+
+      // Auto-trigger navigation
+      const startNode = fromId || 'main_gate';
+      if (!fromId) {
+        setFromId('main_gate');
+        showToast('Defaulting start to Main Gate.', 'info');
+      }
+      setTimeout(() => calcRoute(startNode, bestMatch.id), 100);
     } else {
-      showToast(`Could not find "${transcript}"`, 'error');
+      showToast(`${T('noResults')}: "${transcript}"`, 'error');
     }
     setShowVoice(false);
   };
@@ -157,6 +199,7 @@ export default function App() {
     showSettings, setShowSettings,
     showVoice, setShowVoice, onVoiceResult,
     panelOpen, setPanelOpen,
+    currentFloor, setCurrentFloor,
   };
 
   return (
