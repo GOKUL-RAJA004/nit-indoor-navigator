@@ -261,16 +261,18 @@ export const edges = [
 
 // ─── BUILDINGS & FLOORS ──────────────────────────────────────────────────────
 
+const BASE = import.meta.env.BASE_URL || '/';
+
 export const buildings = [
   {
     id: 'main',
     name: 'Main Academic Block',
     floors: [
-      { level: '4', name: '4th Floor', mapImage: '/4th_floor.jpeg', mapWidth: 1024, mapHeight: 768 },
-      { level: '3', name: '3rd Floor', mapImage: '/3rd_floor.png', mapWidth: 1204, mapHeight: 768 },
-      { level: '2', name: '2nd Floor', mapImage: '/2nd_floor.png', mapWidth: 1069, mapHeight: 856 },
-      { level: '1', name: '1st Floor', mapImage: '/1st_floor.png', mapWidth: 1080, mapHeight: 1080 },
-      { level: '0', name: 'Ground Floor', mapImage: '/ground_floor.png', mapWidth: 1024, mapHeight: 766 },
+      { level: '4', name: '4th Floor', mapImage: `${BASE}4th_floor.jpeg`, mapWidth: 1024, mapHeight: 768 },
+      { level: '3', name: '3rd Floor', mapImage: `${BASE}3rd_floor.png`, mapWidth: 1204, mapHeight: 768 },
+      { level: '2', name: '2nd Floor', mapImage: `${BASE}2nd_floor.png`, mapWidth: 1069, mapHeight: 856 },
+      { level: '1', name: '1st Floor', mapImage: `${BASE}1st_floor.png`, mapWidth: 1080, mapHeight: 1080 },
+      { level: '0', name: 'Ground Floor', mapImage: `${BASE}ground_floor.png`, mapWidth: 1024, mapHeight: 766 },
     ],
   },
 ];

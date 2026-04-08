@@ -41,7 +41,7 @@ export default function Header() {
       <button className="panel-toggle" onClick={() => setPanelOpen(p => !p)} title="Menu">☰</button>
 
       <div className="header-brand">
-        <img src="/logo.png" alt="NIT Indoor Navigator" className="header-logo-img" />
+        <img src={`${import.meta.env.BASE_URL || '/'}logo.png`} alt="NIT Indoor Navigator" className="header-logo-img" />
         <div className="header-text">
           <h1>{T('appTitle')}</h1>
           <p>{T('collegeName')} · {T('subtitle')}</p>
