@@ -7,7 +7,7 @@
 const translations = {
   ta: {
     code: 'ta', label: 'தமிழ்', voiceLang: 'ta-IN',
-    appTitle: 'QuickPath',
+    appTitle: 'NIT Indoor Navigator',
     collegeName: 'நேரு தொழில்நுட்பக் கழகம்',
     subtitle: 'தன்னாட்சி, கோயம்புத்தூர்',
     search: 'அறைகள், ஆய்வகங்களைத் தேடு…',
@@ -80,6 +80,10 @@ const translations = {
     turns: 'திருப்பம்(கள்)',
     all: 'அனைத்தும்', labs: 'ஆய்வகங்கள்', halls: 'மண்டபங்கள்', offices: 'அலுவலகங்கள்',
     toilets: 'கழிவறைகள்', staircases: 'படிக்கட்டுகள்', corridors: 'நடைபாதைகள்', outdoor: 'வெளிப்புறம்',
+    estimatedTime: 'மதிப்பிடு நேரம்',
+    checkpoints: 'செக்போயின்ட்கள்',
+    addFavorite: 'பிடித்தவைகளில் சேர்',
+    removeFavorite: 'பிடித்தவைகளிலிருந்து நீக்கு',
     totalLocations: 'மொத்த இடங்கள்',
     totalConnections: 'மொத்த இணைப்புகள்',
     totalBuildings: 'கட்டிடங்கள்',
@@ -114,7 +118,7 @@ const translations = {
   },
   en: {
     code: 'en', label: 'English', voiceLang: 'en-US',
-    appTitle: 'QuickPath',
+    appTitle: 'NIT Indoor Navigator',
     collegeName: 'NEHRU INSTITUTE OF TECHNOLOGY',
     subtitle: 'Autonomous, Coimbatore',
     search: 'Search rooms, labs, halls…',
@@ -239,7 +243,7 @@ const translations = {
   },
   hi: {
     code: 'hi', label: 'हिन्दी', voiceLang: 'hi-IN',
-    appTitle: 'QuickPath',
+    appTitle: 'NIT Indoor Navigator',
     collegeName: 'नेहरू प्रौद्योगिकी संस्थान',
     subtitle: 'स्वायत्त, कोयम्बटूर',
     search: 'कमरे, लैब, हॉल खोजें…',
@@ -329,7 +333,7 @@ const translations = {
   },
   ml: {
     code: 'ml', label: 'മലയാളം', voiceLang: 'ml-IN',
-    appTitle: 'QuickPath',
+    appTitle: 'NIT Indoor Navigator',
     collegeName: 'നെഹ്‌റു ഇൻസ്റ്റിറ്റ്യൂട്ട് ഓഫ് ടെക്‌നോളജി',
     subtitle: 'സ്വയംഭരണം, കോയമ്പത്തൂർ',
     search: 'മുറികൾ, ലാബുകൾ തിരയുക…',
@@ -415,7 +419,7 @@ const translations = {
   },
   te: {
     code: 'te', label: 'తెలుగు', voiceLang: 'te-IN',
-    appTitle: 'QuickPath',
+    appTitle: 'NIT Indoor Navigator',
     collegeName: 'నెహ్రూ ఇన్‌స్టిట్యూట్ ఆఫ్ టెక్నాలజీ',
     subtitle: 'ఆటోనమస్, కోయంబత్తూర్',
     search: 'గదులు, ల్యాబ్‌లు వెతకండి…',
@@ -500,7 +504,7 @@ const translations = {
   },
   kn: {
     code: 'kn', label: 'ಕನ್ನಡ', voiceLang: 'kn-IN',
-    appTitle: 'QuickPath',
+    appTitle: 'NIT Indoor Navigator',
     collegeName: 'ನೆಹರೂ ಇನ್‌ಸ್ಟಿಟ್ಯೂಟ್ ಆಫ್ ಟೆಕ್ನಾಲಜಿ',
     subtitle: 'ಸ್ವಾಯತ್ತ, ಕೊಯಮ್ಬತ್ತೂರ್',
     search: 'ಕೊಠಡಿಗಳು, ಲ್ಯಾಬ್‌ಗಳನ್ನು ಹುಡುಕಿ…',

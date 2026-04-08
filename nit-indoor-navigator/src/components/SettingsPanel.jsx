@@ -59,13 +59,13 @@ export default function SettingsPanel() {
           <div className="sp-section">
             <div className="sp-label">ℹ️ {T('about')}</div>
             <div className="sp-info">
-              QuickPath v2.0<br />
+              NIT Indoor Navigator v2.0<br />
               Nehru Institute of Technology (Autonomous), Coimbatore<br /><br />
               Smart campus wayfinding system with multilingual voice-guided
-              step-by-step indoor navigation. Built for students, faculty,
+              step-by-step indoor navigation across 5 floors. Built for students, faculty,
               staff, and visitors.<br /><br />
-              Supported languages: English, Tamil, Hindi, Malayalam, Telugu, Kannada<br />
-              Future: QR location, BLE beacons, Wi-Fi positioning, emergency exits
+              Supported languages: Tamil, English, Hindi, Malayalam, Telugu, Kannada<br />
+              Features: Multi-floor navigation, voice guidance, staircase transitions, Dijkstra routing
             </div>
           </div>
         </div>

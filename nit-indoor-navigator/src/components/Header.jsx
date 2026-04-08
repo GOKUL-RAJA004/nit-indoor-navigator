@@ -41,10 +41,10 @@ export default function Header() {
       <button className="panel-toggle" onClick={() => setPanelOpen(p => !p)} title="Menu">☰</button>
 
       <div className="header-brand">
-        <img src="/logo.png" alt="QuickPath" className="header-logo-img" />
+        <img src="/logo.png" alt="NIT Indoor Navigator" className="header-logo-img" />
         <div className="header-text">
-          <h1>{T('collegeName')}</h1>
-          <p>{T('subtitle')}</p>
+          <h1>{T('appTitle')}</h1>
+          <p>{T('collegeName')} · {T('subtitle')}</p>
         </div>
       </div>
 
